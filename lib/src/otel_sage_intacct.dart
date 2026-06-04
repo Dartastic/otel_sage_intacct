@@ -2,7 +2,6 @@
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
 import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
-import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_sage_intacct_suppression.dart';
 
@@ -50,45 +49,56 @@ Future<T> tracedSageIntacct<T>({
   final t = tracer ?? OTel.tracerProvider().getTracer('otel_sage_intacct');
   final span = t.startSpan('sageintacct $operation', kind: SpanKind.client);
   try {
-    span.setStringAttribute('rpc.system', 'sage_intacct');
+    span.addAttributes(
+        OTel.attributes([OTel.attributeString('rpc.system', 'sage_intacct')]));
     final r = await invoke();
     final res = r.result;
     if (res != null) {
       if (res.companyId != null) {
-        span.setStringAttribute('sage.company.id', res.companyId!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('sage.company.id', res.companyId!)]));
       }
       if (res.entityId != null) {
-        span.setStringAttribute('sage.entity.id', res.entityId!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('sage.entity.id', res.entityId!)]));
       }
       if (res.moduleName != null) {
-        span.setStringAttribute('sage.module', res.moduleName!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('sage.module', res.moduleName!)]));
       }
       if (res.recordType != null) {
-        span.setStringAttribute('sage.record.type', res.recordType!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('sage.record.type', res.recordType!)]));
       }
       if (res.recordId != null) {
-        span.setStringAttribute('sage.record.id', res.recordId!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('sage.record.id', res.recordId!)]));
       }
       if (res.amount != null) {
-        span.setDoubleAttribute('sage.amount', res.amount!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeDouble('sage.amount', res.amount!)]));
       }
       if (res.currency != null) {
-        span.setStringAttribute('sage.currency', res.currency!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('sage.currency', res.currency!)]));
       }
       if (res.statusCode != null) {
-        span.setIntAttribute('http.response.status_code', res.statusCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeInt('http.response.status_code', res.statusCode!)]));
       }
       if (res.errorCode != null) {
-        span.setStringAttribute('sageintacct.error.code', res.errorCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('sageintacct.error.code', res.errorCode!)]));
       }
-      final fail =
-          res.errorCode != null ||
+      final fail = res.errorCode != null ||
           (res.statusCode != null && res.statusCode! >= 400);
       if (fail) {
-        span.setStringAttribute(
-          ErrorResource.errorType.key,
-          res.errorCode ?? 'sageintacct.error',
-        );
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString(
+            ErrorResource.errorType.key,
+            res.errorCode ?? 'sageintacct.error',
+          )
+        ]));
         span.setStatus(SpanStatusCode.Error, res.errorMessage);
       }
     }
